@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = process.env.MONGODB_DB_NAME || 'oak_ink_chat';
+const DB_NAME = process.env.MONGODB_DB_NAME || 'mega_book_store_chat';
 
 if (!MONGODB_URI) {
   console.error('Missing MONGODB_URI in environment');

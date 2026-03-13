@@ -8,6 +8,22 @@ import { generateAnswer, chunkAnswerForStreaming } from '../services/gemini.js';
 const router = express.Router();
 
 const VECTOR_INDEX_NAME = process.env.VECTOR_INDEX_NAME || 'chunk_vector_index';
+const MAINTENANCE_MESSAGE =
+  'I am currently under maintenance due to high service load. Please try again shortly.';
+
+function isQuotaExceededError(error) {
+  const status = Number(error?.status || error?.statusCode || error?.code || 0);
+  if (status === 429) return true;
+
+  const msg = String(error?.message || error || '').toLowerCase();
+  return (
+    msg.includes('quota') ||
+    msg.includes('resource_exhausted') ||
+    msg.includes('rate limit') ||
+    msg.includes('too many requests') ||
+    msg.includes('429')
+  );
+}
 
 // List chat sessions for current user
 // GET /api/chat/sessions
@@ -73,74 +89,93 @@ async function runRagChatTurn({ userId, sessionId, message }) {
     content: message
   });
 
-  const queryEmbedding = await embedQueryText(message);
+  try {
+    const queryEmbedding = await embedQueryText(message);
 
-  const db = mongoose.connection.db;
-  // Match the non-GridFS collection name used by the Chunk model
-  const collection = db.collection('rag_chunks');
+    const db = mongoose.connection.db;
+    // Match the non-GridFS collection name used by the Chunk model
+    const collection = db.collection('rag_chunks');
 
-  const topK = 8;
+    const topK = 8;
 
-  const results = await collection
-    .aggregate([
-      {
-        $vectorSearch: {
-          index: VECTOR_INDEX_NAME,
-          path: 'embedding',
-          queryVector: queryEmbedding,
-          numCandidates: 100,
-          limit: topK
+    const results = await collection
+      .aggregate([
+        {
+          $vectorSearch: {
+            index: VECTOR_INDEX_NAME,
+            path: 'embedding',
+            queryVector: queryEmbedding,
+            numCandidates: 100,
+            limit: topK
+          }
         }
+      ])
+      .toArray();
+
+    let contextChunks = results.map((doc) => ({
+      text: doc.text,
+      documentId: doc.documentId,
+      metadata: doc.metadata || {}
+    }));
+
+    if (contextChunks.length === 0) {
+      const rawTokens = String(message)
+        .toLowerCase()
+        .match(/[a-z0-9']{3,}/g);
+      const stopwords = new Set(['the', 'and', 'for', 'with', 'book', 'price', 'how', 'much', 'what', 'are', 'is', 'about']);
+      const tokens = Array.from(new Set((rawTokens || []).filter((token) => !stopwords.has(token))));
+      if (tokens.length > 0) {
+        const regex = new RegExp(tokens.join('|'), 'i');
+        const fallback = await Chunk.find({ text: regex })
+          .sort({ createdAt: -1 })
+          .limit(topK)
+          .lean();
+        contextChunks = fallback.map((doc) => ({
+          text: doc.text,
+          documentId: doc.documentId,
+          metadata: doc.metadata || {}
+        }));
       }
-    ])
-    .toArray();
-
-  let contextChunks = results.map((doc) => ({
-    text: doc.text,
-    documentId: doc.documentId,
-    metadata: doc.metadata || {}
-  }));
-
-  if (contextChunks.length === 0) {
-    const rawTokens = String(message)
-      .toLowerCase()
-      .match(/[a-z0-9']{3,}/g);
-    const stopwords = new Set(['the', 'and', 'for', 'with', 'book', 'price', 'how', 'much', 'what', 'are', 'is', 'about']);
-    const tokens = Array.from(new Set((rawTokens || []).filter((token) => !stopwords.has(token))));
-    if (tokens.length > 0) {
-      const regex = new RegExp(tokens.join('|'), 'i');
-      const fallback = await Chunk.find({ text: regex })
-        .sort({ createdAt: -1 })
-        .limit(topK)
-        .lean();
-      contextChunks = fallback.map((doc) => ({
-        text: doc.text,
-        documentId: doc.documentId,
-        metadata: doc.metadata || {}
-      }));
     }
+
+    const historyForPrompt = session.messages.slice(-10);
+
+    const { text: answerText, citations } = await generateAnswer({
+      contextChunks,
+      chatHistory: historyForPrompt,
+      userMessage: message
+    });
+
+    session.messages.push({
+      role: 'assistant',
+      content: answerText
+    });
+    await session.save();
+
+    return {
+      sessionId: session._id,
+      answerText,
+      citations,
+      contextChunks
+    };
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      throw error;
+    }
+
+    session.messages.push({
+      role: 'assistant',
+      content: MAINTENANCE_MESSAGE
+    });
+    await session.save();
+
+    return {
+      sessionId: session._id,
+      answerText: MAINTENANCE_MESSAGE,
+      citations: [],
+      contextChunks: []
+    };
   }
-
-  const historyForPrompt = session.messages.slice(-10);
-
-  const { text: answerText, citations } = await generateAnswer({
-    contextChunks,
-    chatHistory: historyForPrompt,
-    userMessage: message
-  });
-
-  session.messages.push({
-    role: 'assistant',
-    content: answerText
-  });
-  await session.save();
-
-  return {
-    sessionId: session._id,
-    answerText,
-    citations,
-    contextChunks
-  };
 }
 
 router.post('/', async (req, res) => {
