@@ -14,7 +14,7 @@ export const setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
 };
 
 export const getApiBaseUrl = () => {
-  const base = 'http://localhost:4000'; // Default for development
+  const base = import.meta.env.VITE_API_BASE_URL;
   return base.replace(/\/$/, '');
 };
 
