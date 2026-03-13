@@ -112,7 +112,12 @@ const ChatWidget: React.FC = () => {
               </div>
             </div>
             <div className="flex gap-1">
-              <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-stone-700 rounded transition-colors">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-stone-700 rounded transition-colors"
+                title="Minimize chat"
+                aria-label="Minimize chat"
+              >
                 <Minus className="w-4 h-4" />
               </button>
             </div>
@@ -122,7 +127,7 @@ const ChatWidget: React.FC = () => {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 font-sans bg-stone-50">
             {messages.length === 0 && (
               <div className="text-center py-8 space-y-2">
-                <p className="text-stone-400 text-sm">Welcome to Oak & Ink!</p>
+                <p className="text-stone-400 text-sm">Welcome to Mega Book Store!</p>
                 <p className="text-stone-500 text-xs italic">Ask me about our inventory, store policies, or upcoming events.</p>
               </div>
             )}
@@ -170,6 +175,8 @@ const ChatWidget: React.FC = () => {
             <button 
               type="submit"
               disabled={!input.trim() || isTyping}
+              title="Send message"
+              aria-label="Send message"
               className="p-2 bg-stone-800 text-stone-100 rounded-full hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Send className="w-4 h-4" />
@@ -182,7 +189,7 @@ const ChatWidget: React.FC = () => {
           className="bg-stone-800 text-white p-4 rounded-full shadow-xl hover:scale-105 transition-all flex items-center gap-2 group"
         >
           <span className="text-sm font-medium pl-1 max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
-            Ask Oak & Ink
+            Ask Mega Book Store
           </span>
           <MessageSquare className="w-6 h-6" />
         </button>

@@ -49,7 +49,7 @@ const SignupPage: React.FC = () => {
             <Book className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-stone-900">Create Account</h1>
-          <p className="text-stone-500 font-sans text-sm">Join the Oak & Ink reader community</p>
+          <p className="text-stone-500 font-sans text-sm">Join the Mega Book Store reader community</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 font-sans">

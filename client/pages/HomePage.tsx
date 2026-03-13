@@ -35,6 +35,23 @@ const HomePage: React.FC = () => {
 
   const highlightBooks = books.slice(0, 3);
   const featuredBooks = books.slice(3, 9);
+  const readerCirclePerks = [
+    {
+      badge: 'WELCOME',
+      title: '10% Member Discount',
+      detail: 'Applies to every order at checkout.'
+    },
+    {
+      badge: 'EARLY ACCESS',
+      title: 'First Look Collections',
+      detail: 'Shop curated drops before everyone else.'
+    },
+    {
+      badge: 'MONTHLY',
+      title: 'Exclusive Reading Lists',
+      detail: 'Fresh picks from our editors each month.'
+    }
+  ];
 
   const getCoverUrl = (book: Book) => {
     if (book.coverImage) return book.coverImage;
@@ -54,18 +71,14 @@ const HomePage: React.FC = () => {
     <div className="space-y-16 py-10 animate-in fade-in duration-700">
       <section className="text-center space-y-6 max-w-3xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-stone-900">
-          Oak & Ink Bookstore
+          Mega Book Store
         </h1>
         <p className="text-xl text-stone-600 leading-relaxed font-sans">
-          Curated stories, independent thought, and the smell of fresh paper. 
-          Your quiet corner in a loud world.
+          Handpicked books for better habits, sharper thinking, and meaningful growth.
         </p>
         <div className="flex justify-center gap-4">
           <button className="px-8 py-3 bg-stone-800 text-stone-50 rounded-md font-sans font-medium hover:bg-stone-700 transition-colors shadow-lg">
-            Browse Inventory
-          </button>
-          <button className="px-8 py-3 border-2 border-stone-800 text-stone-800 rounded-md font-sans font-medium hover:bg-stone-100 transition-colors">
-            Our Story
+            Shop Top Picks
           </button>
         </div>
       </section>
@@ -73,7 +86,7 @@ const HomePage: React.FC = () => {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {highlightBooks.length === 0 && !booksError ? (
           <div className="col-span-full text-center text-stone-400 font-sans text-sm">
-            Loading highlights...
+            Loading top picks...
           </div>
         ) : (
           highlightBooks.map((book) => (
@@ -102,12 +115,9 @@ const HomePage: React.FC = () => {
       <section className="space-y-6">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-stone-900">Featured Titles</h2>
-            <p className="text-sm text-stone-500 font-sans">Fresh arrivals from the catalog.</p>
+            <h2 className="text-3xl font-bold text-stone-900">Featured Books</h2>
+            <p className="text-sm text-stone-500 font-sans">Reader favorites and fresh arrivals.</p>
           </div>
-          <button className="text-sm font-sans font-semibold text-stone-700 hover:text-stone-900 transition-colors">
-            View full catalog
-          </button>
         </div>
 
         {booksError && (
@@ -117,7 +127,7 @@ const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredBooks.length === 0 && !booksError ? (
             <div className="col-span-full text-center text-stone-400 font-sans text-sm">
-              Loading featured books...
+              Loading featured picks...
             </div>
           ) : (
             featuredBooks.map((book) => (
@@ -143,7 +153,7 @@ const HomePage: React.FC = () => {
                   <p className="text-sm text-stone-600 font-sans">{book.author}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-stone-900">{book.price} {book.currency}</span>
-                    <span className="text-xs font-sans text-stone-500">Stock {book.stock}</span>
+                    <span className="text-xs font-sans text-stone-500">In stock: {book.stock}</span>
                   </div>
                 </div>
               </div>
@@ -154,18 +164,24 @@ const HomePage: React.FC = () => {
 
       <section className="bg-stone-200 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1 space-y-4">
-          <h2 className="text-3xl font-bold">The Loyalty Program</h2>
+          <h2 className="text-3xl font-bold">Reader Circle</h2>
           <p className="text-stone-700 font-sans leading-relaxed">
-            Join the Oak & Ink membership to receive 10% off every purchase, exclusive invites to 
-            private author events, and early access to our quarterly rare book auctions.
+            Members receive 10% off every order, early access to curated collections, and exclusive reading lists each month.
           </p>
-          <button className="text-stone-900 font-bold font-sans underline underline-offset-4 hover:text-stone-600 transition-colors">
-            Become a Member
-          </button>
         </div>
-        <div className="w-full md:w-1/3 aspect-video rounded-xl overflow-hidden shadow-inner bg-gradient-to-br from-stone-300 via-stone-200 to-stone-100 relative">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(20,20,20,0.08),rgba(20,20,20,0))]" />
-          <div className="absolute bottom-4 left-4 right-4 h-2 bg-stone-400/40 rounded-full" />
+        <div className="w-full md:w-1/3 space-y-3">
+          {readerCirclePerks.map((perk) => (
+            <div
+              key={perk.title}
+              className="relative rounded-xl border border-stone-300 bg-stone-100/90 px-4 py-3 shadow-sm"
+            >
+              <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-stone-200 border border-stone-300" />
+              <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 h-4 w-4 rounded-full bg-stone-200 border border-stone-300" />
+              <p className="text-[10px] font-sans font-bold tracking-[0.2em] text-stone-500">{perk.badge}</p>
+              <h3 className="text-base font-bold text-stone-900">{perk.title}</h3>
+              <p className="text-xs font-sans text-stone-600">{perk.detail}</p>
+            </div>
+          ))}
         </div>
       </section>
 

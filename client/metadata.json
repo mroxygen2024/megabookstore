@@ -1,5 +1,5 @@
 {
-  "name": "Oak & Ink Bookstore",
+  "name": "Mega Book Store",
   "description": "A private independent bookstore application with a RAG-powered chatbot and administrative document management system.",
   "requestFramePermissions": [
     "camera",

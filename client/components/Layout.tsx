@@ -31,7 +31,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <div className="bg-stone-800 p-2 rounded">
                     <Book className="text-stone-100 w-5 h-5" />
                   </div>
-                  <span className="font-bold text-xl tracking-tight hidden sm:block">Oak & Ink</span>
+                  <span className="font-bold text-xl tracking-tight hidden sm:block">Mega Book Store</span>
                 </Link>
               </div>
 

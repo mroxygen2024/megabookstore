@@ -105,7 +105,7 @@ const LoginPage: React.FC = () => {
             <Book className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-stone-900">Welcome back</h1>
-          <p className="text-stone-500 font-sans text-sm">Log in to your Oak & Ink account</p>
+          <p className="text-stone-500 font-sans text-sm">Log in to your Mega Book Store account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 font-sans">

@@ -33,6 +33,14 @@ const MANUAL_SEED_BOOKS = [
   { title: 'So Good They Can\'t Ignore You', author: 'Cal Newport', category: 'Mindset', isbn: 'SKU-SH-020' }
 ];
 
+const RESET_BEFORE_SEED = true;
+const COVER_LOOKUP_DELAY_MS = 120;
+const COVER_LOOKUP_USER_AGENT = 'mega-book-store-seeder/1.0';
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function getRandomStock() {
   return Math.floor(Math.random() * 50) + 5;
 }
@@ -45,14 +53,96 @@ function calculateEtbPrice(pageCount = 300) {
   return Math.min(Math.max(price, 500), 3500);
 }
 
+async function fetchJson(url, attempt = 1) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': COVER_LOOKUP_USER_AGENT
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (attempt < 3) {
+      await wait(200 * attempt);
+      return fetchJson(url, attempt + 1);
+    }
+    return null;
+  }
+}
+
+function normalizeGoogleCover(url) {
+  if (!url) return null;
+  return String(url)
+    .replace('http://', 'https://')
+    .replace('&edge=curl', '')
+    .replace('zoom=1', 'zoom=2');
+}
+
+async function resolveRealCoverImage({ title, author }) {
+  const openLibraryUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1&fields=cover_i,isbn`;
+  const openLibrary = await fetchJson(openLibraryUrl);
+  const openDoc = openLibrary?.docs?.[0];
+
+  if (typeof openDoc?.cover_i === 'number') {
+    return `https://covers.openlibrary.org/b/id/${openDoc.cover_i}-L.jpg`;
+  }
+
+  if (Array.isArray(openDoc?.isbn) && openDoc.isbn.length > 0) {
+    return `https://covers.openlibrary.org/b/isbn/${openDoc.isbn[0]}-L.jpg`;
+  }
+
+  const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`intitle:${title} inauthor:${author}`)}&maxResults=1`;
+  const googleBooks = await fetchJson(googleBooksUrl);
+  const thumbnail = googleBooks?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+  return normalizeGoogleCover(thumbnail);
+}
+
+function createCoverDataUri({ title, author, category, sku }) {
+  const safeTitle = String(title || 'Book').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeAuthor = String(author || 'Unknown').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeCategory = String(category || 'General').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeSku = String(sku || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#44403c"/>
+      <stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="900" fill="url(#bg)"/>
+  <rect x="36" y="36" width="528" height="828" rx="18" fill="none" stroke="#d6d3d1" stroke-width="2" opacity="0.55"/>
+  <text x="64" y="120" fill="#d6d3d1" font-family="Georgia, serif" font-size="22" letter-spacing="2">MEGA BOOK STORE</text>
+  <text x="64" y="250" fill="#fafaf9" font-family="Georgia, serif" font-size="46" font-weight="700">${safeTitle}</text>
+  <text x="64" y="320" fill="#e7e5e4" font-family="Arial, sans-serif" font-size="22">${safeAuthor}</text>
+  <text x="64" y="780" fill="#d6d3d1" font-family="Arial, sans-serif" font-size="18">${safeCategory}</text>
+  <text x="64" y="812" fill="#a8a29e" font-family="Arial, sans-serif" font-size="16">${safeSku}</text>
+</svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 async function seedBooks() {
   await connectDb();
   console.log('Connected to MongoDB');
 
+  if (RESET_BEFORE_SEED) {
+    await Book.deleteMany({});
+    console.log('Cleared existing books collection');
+  }
+
   let totalBooks = 0;
 
   for (const item of MANUAL_SEED_BOOKS) {
+    await wait(COVER_LOOKUP_DELAY_MS);
     const pageCount = Math.floor(Math.random() * 220) + 180;
+    const realCoverImage = await resolveRealCoverImage(item);
     const book = {
       title: item.title,
       author: item.author,
@@ -61,10 +151,15 @@ async function seedBooks() {
       price: calculateEtbPrice(pageCount),
       currency: 'ETB',
       stock: getRandomStock(),
-      publisher: 'Oak & Ink Press',
+      publisher: 'Mega Book Store Press',
       publishedYear: 2010 + Math.floor(Math.random() * 16),
       description: `A practical ${item.category.toLowerCase()} title focused on personal growth, discipline, and better decision making.`,
-      coverImage: '',
+      coverImage: realCoverImage || createCoverDataUri({
+        title: item.title,
+        author: item.author,
+        category: item.category,
+        sku: item.isbn
+      }),
       language: 'English',
       pageCount
     };

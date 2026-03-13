@@ -1,7 +1,7 @@
 {
-  "name": "oak-ink-backend",
+  "name": "mega-book-store-backend",
   "version": "1.0.0",
-  "description": "RAG-based AI chatbot backend for Oak & Ink Bookstore",
+  "description": "RAG-based AI chatbot backend for Mega Book Store",
   "type": "module",
   "main": "index.js",
   "scripts": {
