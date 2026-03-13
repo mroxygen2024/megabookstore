@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'oak_ink_token';
+const TOKEN_KEY = 'mega_book_store_token';
 
 type ApiError = {
   status: number;

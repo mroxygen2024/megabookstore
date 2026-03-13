@@ -11,18 +11,20 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const googleButtonRef = React.useRef<HTMLDivElement | null>(null);
-  const [isGoogleEnabled] = React.useState(Boolean('866953361931-950mtnc98lhfd1ei4u4nhm92kcu868p5.apps.googleusercontent.com'));
+  const [isGoogleEnabled] = React.useState(Boolean(GOOGLE_CLIENT_ID));
   const { login, loginWithGoogle } = useAuthStore();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    const clientId = '866953361931-950mtnc98lhfd1ei4u4nhm92kcu868p5.apps.googleusercontent.com';
+    const clientId = GOOGLE_CLIENT_ID;
     if (!clientId) {
       return;
     }
@@ -118,7 +120,7 @@ const LoginPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-stone-800 outline-none transition-shadow"
-                placeholder="reader@oakandink.com"
+                placeholder="reader@megabookstore.com"
               />
             </div>
           </div>

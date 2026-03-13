@@ -25,14 +25,14 @@ const ChatWidget: React.FC = () => {
     }));
     setMessages(mapped);
     setSessionId(data.session._id);
-    localStorage.setItem('oak_ink_chat_session', data.session._id);
+    localStorage.setItem('mega_book_store_chat_session', data.session._id);
   }, []);
 
   const loadSessions = React.useCallback(async () => {
     try {
       setError(null);
       const data = await apiFetch<{ sessions: Array<{ _id: string }> }>('/api/chat/sessions');
-      const storedSession = localStorage.getItem('oak_ink_chat_session');
+      const storedSession = localStorage.getItem('mega_book_store_chat_session');
       const sessionToLoad = storedSession && data.sessions.some((session) => session._id === storedSession)
         ? storedSession
         : data.sessions[0]?._id || null;
@@ -81,7 +81,7 @@ const ChatWidget: React.FC = () => {
         body: JSON.stringify({ message: input, sessionId }),
       });
       setSessionId(data.sessionId);
-      localStorage.setItem('oak_ink_chat_session', data.sessionId);
+      localStorage.setItem('mega_book_store_chat_session', data.sessionId);
       setMessages((prev) => [
         ...prev,
         {

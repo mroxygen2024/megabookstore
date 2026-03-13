@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: normalizeUser(data.user), token: data.token, isAuthenticated: true });
   },
   hydrate: async () => {
-    const existingToken = localStorage.getItem('oak_ink_token');
+    const existingToken = localStorage.getItem('mega_book_store_token');
     if (!existingToken) {
       set({ isLoading: false });
       return;
@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   logout: () => {
     setAuthToken(null);
-    localStorage.removeItem('oak_ink_chat_session');
+    localStorage.removeItem('mega_book_store_chat_session');
     set({ user: null, token: null, isAuthenticated: false, isLoading: false });
   },
 }));

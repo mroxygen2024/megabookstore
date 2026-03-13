@@ -27,3 +27,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Seed artifacts and local seed files
+*.seed
+*.seed.*
+seed*.log
+**/seed*.log
