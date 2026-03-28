@@ -15,6 +15,9 @@ export const setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
 
 export const getApiBaseUrl = () => {
   const base = import.meta.env.VITE_API_BASE_URL;
+  if (typeof base !== 'string' || base.trim() === '') {
+    return '';
+  }
   return base.replace(/\/$/, '');
 };
 

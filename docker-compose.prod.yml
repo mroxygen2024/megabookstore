@@ -1,0 +1,15 @@
+services:
+  server:
+    build:
+      target: prod
+    command: npm run start
+    ports:
+      - "4000:4000"
+    environment:
+      CLIENT_ORIGIN: http://localhost
+
+  client:
+    build:
+      target: prod
+    ports:
+      - "80:80"

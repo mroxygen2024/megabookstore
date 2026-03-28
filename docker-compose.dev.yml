@@ -1,0 +1,26 @@
+services:
+  server:
+    build:
+      target: dev
+    command: npm run dev
+    ports:
+      - "4000:4000"
+    environment:
+      CLIENT_ORIGIN: http://localhost:5173
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - server_uploads:/app/uploads
+
+  client:
+    build:
+      target: dev
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: ""
+      VITE_DEV_PROXY_TARGET: http://server:4000
+    volumes:
+      - ./client:/app
+      - /app/node_modules

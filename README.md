@@ -15,6 +15,7 @@ A full-stack bookstore platform with authentication, admin document ingestion, a
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Running the Apps](#running-the-apps)
+- [Docker Workflow](#docker-workflow)
 - [API Endpoints](#api-endpoints)
 - [Usage Examples](#usage-examples)
 - [Folder Structure](#folder-structure)
@@ -83,11 +84,18 @@ Create these files:
 - `client/.env`
 - `server/.env`
 
+You can start from the included templates:
+
+```bash
+cp client/.env.example client/.env
+cp server/.env.example server/.env
+```
+
 Example values:
 
 ```env
 # client/.env
-VITE_API_BASE_URL=http://localhost:4000
+VITE_API_BASE_URL=
 ```
 
 ```env
@@ -116,6 +124,55 @@ npm run dev
 ```
 
 Frontend: `http://localhost:5173`
+
+## Docker Workflow
+
+This repository includes Docker support for both development and production:
+
+- `docker-compose.yml` (shared/base config)
+- `docker-compose.dev.yml` (hot-reload development stack)
+- `docker-compose.prod.yml` (optimized production stack)
+
+### Docker Prerequisites
+
+1. Docker Engine + Docker Compose plugin installed.
+2. External MongoDB connection string configured in `server/.env` (`MONGODB_URI`).
+
+### Start Development Stack (hot reload)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:4000`
+
+The dev stack uses Vite proxying (`/api`, `/uploads`) to the server container.
+
+### Start Production Stack
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+```
+
+- Frontend (Nginx): `http://localhost`
+- Backend (direct): `http://localhost:4000`
+
+Nginx serves the frontend and reverse-proxies `/api` and `/uploads` to the backend service.
+
+### Stop Any Stack
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+```
+
+### Run Seed Commands in Docker
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm server npm run seed:books
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm server npm run seed:users
+```
 
 ## API Endpoints
 
