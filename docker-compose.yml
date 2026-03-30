@@ -25,6 +25,8 @@ services:
       server:
         condition: service_healthy
     restart: unless-stopped
+    ports:
+      - "5173:5173"
 
 volumes:
   server_uploads:
